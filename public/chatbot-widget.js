@@ -1,5 +1,5 @@
 (function() {
-  const API_URL = 'https://sgn-chat-api.vercel.app/api/chat';
+  const API_URL = 'https://sgn-chat.vercel.app/api/chat';
 
   // Create and inject CSS
   const style = document.createElement('style');
