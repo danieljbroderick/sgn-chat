@@ -2,7 +2,7 @@
 
 A secure AI chatbot implementation that can be easily integrated with SquareUp websites. The chatbot is powered by OpenAI's GPT-3.5 model and is deployed on Vercel.
 
-## Features
+## Features 1
 
 - Secure API with CORS protection and API key validation
 - Modern, responsive chat widget
