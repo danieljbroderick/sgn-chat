@@ -173,7 +173,7 @@
     <div class="chatbot-widget chatbot-hidden">
       <div class="chatbot-header">
         <div class="header-text">
-          <span class="sgn">SGN</span><span class="golf">GOLF</span> <span>Support</span>
+          <span class="sgn">SGN</span><span class="golf">GOLF Support</span> 
         </div>
         <span class="chatbot-close">×</span>
       </div>
