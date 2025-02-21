@@ -25,8 +25,7 @@
     }
     .chatbot-header {
       padding: 15px;
-      background: #00FF33;
-      color: black;
+      background: black;
       font-weight: bold;
       display: flex;
       justify-content: space-between;
@@ -41,7 +40,7 @@
     .chatbot-close {
       cursor: pointer;
       font-size: 20px;
-      color: black;
+      color: white;
       padding: 5px;
     }
     .chatbot-messages {
@@ -84,8 +83,8 @@
     }
     .chatbot-input button {
       padding: 8px 15px;
-      background: #00FF33;
-      color: black;
+      background: black;
+      color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
@@ -96,8 +95,8 @@
       bottom: 20px;
       right: 20px;
       padding: 12px 24px;
-      background: #00FF33;
-      color: black;
+      background: black;
+      color: white;
       border-radius: 25px;
       display: flex;
       align-items: center;
@@ -124,8 +123,44 @@
       background: white;
     }
     .chatbot-messages::-webkit-scrollbar-thumb {
-      background: #00FF33;
+      background: black;
       border-radius: 3px;
+    }
+    .typing-indicator {
+      background-color: #f0f0f0;
+      border-radius: 15px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      width: fit-content;
+      display: none;
+    }
+    
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #666;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: typing 1s infinite;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+      margin-right: 0;
+    }
+    
+    @keyframes typing {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
     }
   `;
   document.head.appendChild(style);
@@ -140,7 +175,13 @@
         </div>
         <span class="chatbot-close">×</span>
       </div>
-      <div class="chatbot-messages"></div>
+      <div class="chatbot-messages">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
       <div class="chatbot-input">
         <input type="text" placeholder="Type your message...">
         <button>Send</button>
@@ -170,6 +211,17 @@
     widget.classList.add('chatbot-hidden');
   });
 
+  function showTypingIndicator() {
+    const typingIndicator = document.querySelector('.typing-indicator');
+    typingIndicator.style.display = 'block';
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    const typingIndicator = document.querySelector('.typing-indicator');
+    typingIndicator.style.display = 'none';
+  }
+
   // Handle sending messages
   async function sendMessage() {
     const message = input.value.trim();
@@ -178,6 +230,9 @@
     // Add user message to chat
     addMessage(message, 'user');
     input.value = '';
+    
+    // Show typing indicator
+    showTypingIndicator();
 
     try {
       const response = await fetch(API_URL, {
@@ -195,6 +250,9 @@
 
       const data = await response.json();
       
+      // Hide typing indicator before showing response
+      hideTypingIndicator();
+      
       if (response.ok) {
         addMessage(data.response.content, 'bot');
       } else {
@@ -202,6 +260,7 @@
       }
     } catch (error) {
       console.error('Chat error:', error);
+      hideTypingIndicator();
       addMessage('Sorry, I encountered an error. Please try again.', 'bot');
     }
   }
