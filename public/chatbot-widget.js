@@ -34,7 +34,7 @@
     .header-text span.sgn {
       color: white;
     }
-    .header-text span.golf-support {
+    .header-text span.golf {
       color: #01bf53;
     }
     .chatbot-close {
@@ -133,6 +133,8 @@
       margin-bottom: 10px;
       width: fit-content;
       display: none;
+      position: relative;
+      margin-top: auto;
     }
     
     .typing-indicator span {
@@ -171,16 +173,15 @@
     <div class="chatbot-widget chatbot-hidden">
       <div class="chatbot-header">
         <div class="header-text">
-          <span class="sgn">SGN</span> <span class="golf-support">Golf Support</span>
+          <span class="sgn">SGN</span><span class="golf">GOLF</span> <span>Support</span>
         </div>
         <span class="chatbot-close">×</span>
       </div>
-      <div class="chatbot-messages">
-        <div class="typing-indicator">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+      <div class="chatbot-messages"></div>
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
       <div class="chatbot-input">
         <input type="text" placeholder="Type your message...">
