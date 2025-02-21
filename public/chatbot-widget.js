@@ -6,13 +6,13 @@
   style.textContent = `
     .chatbot-widget {
       position: fixed;
-      bottom: 90px;  /* Increased to leave space for the toggle button */
+      bottom: 90px;
       right: 20px;
       width: 350px;
       height: 500px;
-      background: white;
+      background: #333333;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -21,11 +21,12 @@
       transition: all 0.3s ease;
       opacity: 1;
       transform: translateY(0);
+      color: white;
     }
     .chatbot-header {
       padding: 15px;
-      background: #0070f3;
-      color: white;
+      background: #00FF33;
+      color: black;
       font-weight: bold;
       display: flex;
       justify-content: space-between;
@@ -34,7 +35,7 @@
     .chatbot-close {
       cursor: pointer;
       font-size: 20px;
-      color: white;
+      color: black;
       padding: 5px;
     }
     .chatbot-messages {
@@ -47,42 +48,50 @@
       padding: 8px 12px;
       border-radius: 15px;
       max-width: 80%;
+      color: white;
     }
     .user-message {
-      background: #e3f2fd;
+      background: #000000;
       margin-left: auto;
     }
     .bot-message {
-      background: #f5f5f5;
+      background: #000000;
     }
     .chatbot-input {
       padding: 15px;
-      border-top: 1px solid #eee;
+      border-top: 1px solid #444444;
       display: flex;
+      background: #333333;
     }
     .chatbot-input input {
       flex: 1;
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid #444444;
       border-radius: 4px;
       margin-right: 8px;
+      background: #222222;
+      color: white;
+    }
+    .chatbot-input input::placeholder {
+      color: #888888;
     }
     .chatbot-input button {
       padding: 8px 15px;
-      background: #0070f3;
-      color: white;
+      background: #00FF33;
+      color: black;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: bold;
     }
     .chatbot-toggle {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      width: 60px;
-      height: 60px;
-      background: #0070f3;
-      border-radius: 50%;
+      padding: 12px 24px;
+      background: #00FF33;
+      color: black;
+      border-radius: 25px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -90,24 +99,36 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       z-index: 1000;
       transition: transform 0.3s ease;
+      font-weight: bold;
     }
     .chatbot-toggle:hover {
-      transform: scale(1.1);
+      transform: scale(1.05);
     }
     .chatbot-hidden {
       opacity: 0;
       transform: translateY(20px);
       pointer-events: none;
     }
+    /* Custom scrollbar for the messages area */
+    .chatbot-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chatbot-messages::-webkit-scrollbar-track {
+      background: #333333;
+    }
+    .chatbot-messages::-webkit-scrollbar-thumb {
+      background: #00FF33;
+      border-radius: 3px;
+    }
   `;
   document.head.appendChild(style);
 
   // Create chat widget HTML
   const widgetHTML = `
-    <div class="chatbot-toggle">💬</div>
+    <div class="chatbot-toggle">Click here for help</div>
     <div class="chatbot-widget chatbot-hidden">
       <div class="chatbot-header">
-        Chat Support
+        SGN Golf Support
         <span class="chatbot-close">×</span>
       </div>
       <div class="chatbot-messages"></div>
