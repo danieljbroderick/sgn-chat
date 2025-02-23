@@ -164,6 +164,43 @@
         transform: translateY(-5px);
       }
     }
+    .message pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .message code {
+      background: #f4f4f4;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    .message p {
+      margin: 0 0 10px 0;
+    }
+    .message ul, .message ol {
+      padding-left: 20px;
+      margin: 0 0 10px 0;
+    }
+    .message blockquote {
+      border-left: 3px solid #ccc;
+      margin: 0;
+      padding-left: 10px;
+      color: #666;
+    }
+    .message table {
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    .message th, .message td {
+      border: 1px solid #ddd;
+      padding: 6px;
+    }
+    .message a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
   `;
   document.head.appendChild(style);
 
@@ -203,13 +240,28 @@
   const sendButton = document.querySelector('.chatbot-input button');
   const closeButton = document.querySelector('.chatbot-close');
 
+  let inactivityTimer;
+  const INACTIVITY_TIMEOUT = 60000; // 1 minute in milliseconds
+  
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+      const followUpMessage = "Is there anything else I can help with? Or feel free to contact us:\nPhone: 513-212-6934\nEmail: sgngolf@gmail.com";
+      addMessage(followUpMessage, 'bot');
+    }, INACTIVITY_TIMEOUT);
+  }
+
   // Toggle chat widget
   toggle.addEventListener('click', () => {
     widget.classList.remove('chatbot-hidden');
+    if (messages.children.length > 1) { // Only start timer if conversation has started
+      resetInactivityTimer();
+    }
   });
 
   closeButton.addEventListener('click', () => {
     widget.classList.add('chatbot-hidden');
+    clearTimeout(inactivityTimer);
   });
 
   function showTypingIndicator() {
@@ -255,6 +307,7 @@
       hideTypingIndicator();
       
       if (response.ok) {
+        // The response.content will contain markdown formatting
         addMessage(data.response.content, 'bot');
       } else {
         addMessage('Sorry, I encountered an error. Please try again.', 'bot');
@@ -269,9 +322,30 @@
   function addMessage(content, sender) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', `${sender}-message`);
-    messageDiv.textContent = content;
+    
+    // Wait for marked to be loaded
+    if (typeof marked !== 'undefined') {
+      // Configure marked options
+      marked.setOptions({
+        breaks: true, // Adds <br> on single line breaks
+        gfm: true,    // GitHub Flavored Markdown
+        sanitize: true // Sanitize HTML input
+      });
+      
+      // Parse markdown and set innerHTML
+      messageDiv.innerHTML = marked.parse(content);
+    } else {
+      // Fallback if marked isn't loaded yet
+      messageDiv.textContent = content;
+    }
+    
     messages.appendChild(messageDiv);
     messages.scrollTop = messages.scrollHeight;
+
+    // Reset inactivity timer when a message is added
+    if (messages.children.length > 1) {
+      resetInactivityTimer();
+    }
   }
 
   // Event listeners
@@ -281,5 +355,10 @@
   });
 
   // Initial greeting
-  addMessage('Hello! How can I help you today?', 'bot');
+  addMessage('Hello! How can we help you today?', 'bot');
+
+  // Add marked.js for markdown parsing (add this in your HTML)
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+  document.head.appendChild(script);
 })(); 
