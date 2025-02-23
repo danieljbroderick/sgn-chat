@@ -241,14 +241,18 @@
   const closeButton = document.querySelector('.chatbot-close');
 
   let inactivityTimer;
+  let followUpSent = false;  // Flag to track if follow-up has been sent
   const INACTIVITY_TIMEOUT = 60000; // 1 minute in milliseconds
   
   function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(() => {
-      const followUpMessage = "Is there anything else I can help with? Or feel free to contact us:\nPhone: 513-212-6934\nEmail: sgngolf@gmail.com";
-      addMessage(followUpMessage, 'bot');
-    }, INACTIVITY_TIMEOUT);
+    if (!followUpSent) {  // Only set timer if follow-up hasn't been sent
+      inactivityTimer = setTimeout(() => {
+        const followUpMessage = "Is there anything else I can help with? Or feel free to contact us:\nPhone: 513-212-6934\nEmail: sgngolf@gmail.com";
+        addMessage(followUpMessage, 'bot');
+        followUpSent = true;  // Mark follow-up as sent
+      }, INACTIVITY_TIMEOUT);
+    }
   }
 
   // Toggle chat widget
@@ -262,6 +266,7 @@
   closeButton.addEventListener('click', () => {
     widget.classList.add('chatbot-hidden');
     clearTimeout(inactivityTimer);
+    followUpSent = false;  // Reset the flag when chat is closed
   });
 
   function showTypingIndicator() {
