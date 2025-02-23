@@ -275,6 +275,11 @@
     typingIndicator.style.display = 'none';
   }
 
+  function cleanResponse(content) {
+    // Remove citations with【】brackets and any content inside
+    return content.replace(/【[^】]*】/g, '').trim();
+  }
+
   // Handle sending messages
   async function sendMessage() {
     const message = input.value.trim();
@@ -323,26 +328,24 @@
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', `${sender}-message`);
     
-    // Wait for marked to be loaded
+    // Clean the content before processing markdown
+    const cleanedContent = cleanResponse(content);
+    
     if (typeof marked !== 'undefined') {
-      // Configure marked options
       marked.setOptions({
-        breaks: true, // Adds <br> on single line breaks
-        gfm: true,    // GitHub Flavored Markdown
-        sanitize: true // Sanitize HTML input
+        breaks: true,
+        gfm: true,
+        sanitize: true
       });
       
-      // Parse markdown and set innerHTML
-      messageDiv.innerHTML = marked.parse(content);
+      messageDiv.innerHTML = marked.parse(cleanedContent);
     } else {
-      // Fallback if marked isn't loaded yet
-      messageDiv.textContent = content;
+      messageDiv.textContent = cleanedContent;
     }
     
     messages.appendChild(messageDiv);
     messages.scrollTop = messages.scrollHeight;
 
-    // Reset inactivity timer when a message is added
     if (messages.children.length > 1) {
       resetInactivityTimer();
     }
