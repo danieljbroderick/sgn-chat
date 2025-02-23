@@ -246,13 +246,12 @@
   
   function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
-    if (!followUpSent) {  // Only set timer if follow-up hasn't been sent
-      inactivityTimer = setTimeout(() => {
-        const followUpMessage = "Is there anything else I can help with? Or feel free to contact us:\nPhone: 513-212-6934\nEmail: sgngolf@gmail.com";
-        addMessage(followUpMessage, 'bot');
-        followUpSent = true;  // Mark follow-up as sent
-      }, INACTIVITY_TIMEOUT);
-    }
+    followUpSent = false;  // Reset the flag when timer is reset
+    inactivityTimer = setTimeout(() => {
+      const followUpMessage = "Is there anything else I can help with? Or feel free to contact us:\nPhone: 513-212-6934\nEmail: sgngolf@gmail.com";
+      addMessage(followUpMessage, 'bot');
+      followUpSent = true;  // Mark follow-up as sent
+    }, INACTIVITY_TIMEOUT);
   }
 
   // Toggle chat widget
@@ -290,11 +289,10 @@
     const message = input.value.trim();
     if (!message) return;
 
-    // Add user message to chat
     addMessage(message, 'user');
     input.value = '';
+    resetInactivityTimer();  // Reset timer when user sends a message
     
-    // Show typing indicator
     showTypingIndicator();
 
     try {
