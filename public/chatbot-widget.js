@@ -500,33 +500,38 @@
 
   function loadChatHistory() {
     const chatHistory = JSON.parse(localStorage.getItem('sgn-chat-history') || '[]');
+    
+    // Clear any existing messages in the chat window
+    while (messages.firstChild) {
+      messages.removeChild(messages.firstChild);
+    }
+    
     if (chatHistory.length > 0) {
-      // Add a "Continue previous conversation" message
-      addMessage('Would you like to continue your previous conversation?', 'bot');
-      // Add a "clear history" option
-      addClearHistoryButton();
+      // Add a welcome back message
+      addMessage('Welcome back! What can I help you with?', 'bot');
+      
+      // Restore conversation history for context (optional)
+      // You can uncomment this if you want to show the last few messages from history
+      /*
+      const recentMessages = chatHistory.slice(-3); // Show last 3 messages
+      for (const msg of recentMessages) {
+        addMessage(msg.content, msg.sender, false); // false to not save it again
+      }
+      */
+      
+      // Restore message history for API context
+      messageHistory = chatHistory.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
     } else {
-      // Initial greeting
-      addMessage('Hello! How can we help you today?', 'bot');
+      // Initial greeting for new users
+      addMessage('Hi! How can I assist you with SGN Golf simulators today?', 'bot');
     }
   }
 
-  function addClearHistoryButton() {
-    const clearButton = document.createElement('button');
-    clearButton.textContent = 'Start New Conversation';
-    clearButton.classList.add('clear-history-button');
-    clearButton.addEventListener('click', () => {
-      localStorage.removeItem('sgn-chat-history');
-      while (messages.firstChild) {
-        messages.removeChild(messages.firstChild);
-      }
-      addMessage('Hello! How can we help you today?', 'bot');
-    });
-    messages.appendChild(clearButton);
-  }
-
   // Update the addMessage function to save messages
-  function addMessage(content, sender) {
+  function addMessage(content, sender, saveToHistory = true) {
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('message-container', `${sender}-container`);
     
@@ -579,8 +584,10 @@
       resetInactivityTimer();
     }
 
-    // Save to history
-    saveMessageToHistory(content, sender);
+    // Save to history if needed
+    if (saveToHistory) {
+      saveMessageToHistory(content, sender);
+    }
 
     if (sender === 'bot') {
       showNotification();
@@ -612,5 +619,16 @@
     if (widget.classList.contains('chatbot-hidden')) {
       notificationBubble.classList.add('show');
     }
+  }
+
+  // Remove the addClearHistoryButton function since we're not using it anymore
+  // But add a function to clear history if needed
+  function clearChatHistory() {
+    localStorage.removeItem('sgn-chat-history');
+    messageHistory = [];
+    while (messages.firstChild) {
+      messages.removeChild(messages.firstChild);
+    }
+    addMessage('Hi! How can I assist you with SGN Golf simulators today?', 'bot');
   }
 })(); 
