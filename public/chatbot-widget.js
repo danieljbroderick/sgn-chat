@@ -242,15 +242,17 @@
 
   let inactivityTimer;
   let followUpSent = false;  // Flag to track if follow-up has been sent
-  const INACTIVITY_TIMEOUT = 60000; // 1 minute in milliseconds
+  const INACTIVITY_TIMEOUT = 150000; // 2.5 minutes in milliseconds
   
   function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
     followUpSent = false;  // Reset the flag when timer is reset
     inactivityTimer = setTimeout(() => {
-      const followUpMessage = "Is there anything else I can help with? Or feel free to contact us:\nPhone: 513-212-6934\nEmail: sgngolf@gmail.com";
-      addMessage(followUpMessage, 'bot');
-      followUpSent = true;  // Mark follow-up as sent
+      if (!followUpSent) {  // Only send the follow-up message if it hasn't been sent
+        const followUpMessage = "Is there anything else I can help with? Or feel free to contact us:\nPhone: 513-212-6934\nEmail: sgngolf@gmail.com";
+        addMessage(followUpMessage, 'bot');
+        followUpSent = true;  // Mark follow-up as sent
+      }
     }, INACTIVITY_TIMEOUT);
   }
 
