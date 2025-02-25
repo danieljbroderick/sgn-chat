@@ -350,6 +350,22 @@
   // Add message context preservation
   let messageHistory = [];
   
+  // Add this at the beginning of your script to ensure marked is loaded before use
+  // Or move the script loading to the head of your HTML document
+  let markedLoaded = false;
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js'; // Use a specific version
+  script.onload = function() {
+    markedLoaded = true;
+    // Configure marked once it's loaded
+    marked.use({
+      breaks: true,
+      gfm: true,
+      // Note: sanitize is deprecated in newer versions of marked
+    });
+  };
+  document.head.appendChild(script);
+
   function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
     followUpSent = false;  // Reset the flag when timer is reset
@@ -579,26 +595,40 @@
     const bubbleDiv = document.createElement('div');
     bubbleDiv.classList.add('message', `${sender}-message`);
     
+    // Clean the content before processing markdown
+    const cleanedContent = cleanResponse(content);
+    
+    // Improved markdown processing
+    if (markedLoaded && typeof marked !== 'undefined') {
+      try {
+        // Use updated API (marked.parse instead of marked directly in newer versions)
+        bubbleDiv.innerHTML = marked.parse(cleanedContent);
+      } catch (e) {
+        console.error('Error parsing markdown:', e);
+        bubbleDiv.textContent = cleanedContent;
+      }
+    } else {
+      // Fallback for when marked isn't loaded yet
+      bubbleDiv.textContent = cleanedContent;
+      
+      // Retry rendering with markdown when marked loads
+      const checkMarked = setInterval(() => {
+        if (markedLoaded && typeof marked !== 'undefined') {
+          try {
+            bubbleDiv.innerHTML = marked.parse(cleanedContent);
+          } catch (e) {
+            console.error('Error parsing markdown on retry:', e);
+          }
+          clearInterval(checkMarked);
+        }
+      }, 200);
+    }
+    
     // Add timestamp div
     const timestamp = document.createElement('div');
     timestamp.classList.add('message-timestamp');
     const now = new Date();
     timestamp.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    // Clean the content before processing markdown
-    const cleanedContent = cleanResponse(content);
-    
-    if (typeof marked !== 'undefined') {
-      marked.setOptions({
-        breaks: true,
-        gfm: true,
-        sanitize: true
-      });
-      
-      bubbleDiv.innerHTML = marked.parse(cleanedContent);
-    } else {
-      bubbleDiv.textContent = cleanedContent;
-    }
     
     // Append timestamp to bubble
     bubbleDiv.appendChild(timestamp);
@@ -631,11 +661,6 @@
 
   // Update initialization to load history
   loadChatHistory();
-
-  // Add marked.js for markdown parsing (add this in your HTML)
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-  document.head.appendChild(script);
 
   // Add notification HTML to toggle element
   const notificationBubble = document.createElement('div');
