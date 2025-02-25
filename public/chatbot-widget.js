@@ -364,16 +364,35 @@
   }
 
   // Toggle chat widget
+  toggle.addEventListener('click', () => {
+    widget.classList.remove('chatbot-hidden');
+    widget.setAttribute('aria-hidden', 'false');
+    notificationBubble.classList.remove('show');
+    if (messages.children.length > 1) {
+      resetInactivityTimer();
+    }
+    // Focus the input field when opening
+    input.focus();
+  });
+
   toggle.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       widget.classList.remove('chatbot-hidden');
       widget.setAttribute('aria-hidden', 'false');
+      notificationBubble.classList.remove('show');
       if (messages.children.length > 1) {
         resetInactivityTimer();
       }
       // Focus the input field when opening
       input.focus();
     }
+  });
+
+  closeButton.addEventListener('click', () => {
+    widget.classList.add('chatbot-hidden');
+    widget.setAttribute('aria-hidden', 'true');
+    clearTimeout(inactivityTimer);
+    followUpSent = false;
   });
 
   closeButton.addEventListener('keydown', (e) => {
@@ -594,13 +613,4 @@
       notificationBubble.classList.add('show');
     }
   }
-
-  // Clear notification when chat is opened
-  toggle.addEventListener('click', () => {
-    widget.classList.remove('chatbot-hidden');
-    notificationBubble.classList.remove('show');
-    if (messages.children.length > 1) {
-      resetInactivityTimer();
-    }
-  });
 })(); 
