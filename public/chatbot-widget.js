@@ -22,6 +22,15 @@
       opacity: 1;
       transform: translateY(0);
       color: black;
+      
+      /* Add these media queries for mobile */
+      @media (max-width: 480px) {
+        width: calc(100% - 40px);
+        height: 60vh;
+        bottom: 70px;
+        right: 20px;
+        left: 20px;
+      }
     }
     .chatbot-header {
       padding: 15px;
@@ -106,6 +115,14 @@
       z-index: 1000;
       transition: transform 0.3s ease;
       font-weight: bold;
+      
+      /* Add for mobile */
+      @media (max-width: 480px) {
+        width: calc(100% - 40px);
+        justify-content: center;
+        right: 20px;
+        left: 20px;
+      }
     }
     .chatbot-toggle:hover {
       transform: scale(1.05);
@@ -201,28 +218,115 @@
       color: #0066cc;
       text-decoration: underline;
     }
+    .message-container {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      gap: 8px;
+    }
+    .user-container {
+      flex-direction: row-reverse;
+    }
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+      flex-shrink: 0;
+    }
+    .bot-container .message-avatar {
+      background: #e6f7ef;
+    }
+    .message {
+      padding: 10px 12px;
+      border-radius: 15px;
+      max-width: 75%;
+      position: relative;
+    }
+    .user-message {
+      background: #f0f0f0;
+      border-top-right-radius: 4px;
+    }
+    .bot-message {
+      background: #f0f0f0; 
+      border-top-left-radius: 4px;
+    }
+    /* Add animation for new messages */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message-container {
+      animation: fadeIn 0.3s ease-out;
+    }
+    .message-timestamp {
+      font-size: 0.7rem;
+      color: #888;
+      text-align: right;
+      margin-top: 5px;
+      margin-bottom: -5px;
+    }
+    .clear-history-button {
+      margin: 10px auto;
+      display: block;
+      padding: 8px 15px;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background-color 0.2s;
+    }
+    .clear-history-button:hover {
+      background: #e0e0e0;
+    }
+    .notification-bubble {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #01bf53;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.3s ease;
+    }
+    .notification-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
   `;
   document.head.appendChild(style);
 
   // Create chat widget HTML
   const widgetHTML = `
-    <div class="chatbot-toggle">Click here for help</div>
-    <div class="chatbot-widget chatbot-hidden">
-      <div class="chatbot-header">
+    <div class="chatbot-toggle" role="button" tabindex="0" aria-label="Open chat support">Click here for help</div>
+    <div class="chatbot-widget chatbot-hidden" role="dialog" aria-labelledby="chatbot-header" aria-hidden="true">
+      <div class="chatbot-header" id="chatbot-header">
         <div class="header-text">
           <span class="sgn">SGN</span><span class="golf">GOLF Support</span> 
         </div>
-        <span class="chatbot-close">×</span>
+        <span class="chatbot-close" role="button" tabindex="0" aria-label="Close chat">×</span>
       </div>
-      <div class="chatbot-messages"></div>
-      <div class="typing-indicator">
+      <div class="chatbot-messages" role="log" aria-live="polite"></div>
+      <div class="typing-indicator" aria-hidden="true">
         <span></span>
         <span></span>
         <span></span>
       </div>
-      <div class="chatbot-input">
-        <input type="text" placeholder="Type your message...">
-        <button>Send</button>
+      <div class="chatbot-input" role="form">
+        <input type="text" placeholder="Type your message..." aria-label="Message input">
+        <button aria-label="Send message">Send</button>
       </div>
     </div>
   `;
@@ -244,6 +348,9 @@
   let followUpSent = false;  // Flag to track if follow-up has been sent
   const INACTIVITY_TIMEOUT = 150000; // 2.5 minutes in milliseconds
   
+  // Add message context preservation
+  let messageHistory = [];
+  
   function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
     followUpSent = false;  // Reset the flag when timer is reset
@@ -257,17 +364,25 @@
   }
 
   // Toggle chat widget
-  toggle.addEventListener('click', () => {
-    widget.classList.remove('chatbot-hidden');
-    if (messages.children.length > 1) { // Only start timer if conversation has started
-      resetInactivityTimer();
+  toggle.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      widget.classList.remove('chatbot-hidden');
+      widget.setAttribute('aria-hidden', 'false');
+      if (messages.children.length > 1) {
+        resetInactivityTimer();
+      }
+      // Focus the input field when opening
+      input.focus();
     }
   });
 
-  closeButton.addEventListener('click', () => {
-    widget.classList.add('chatbot-hidden');
-    clearTimeout(inactivityTimer);
-    followUpSent = false;  // Reset the flag when chat is closed
+  closeButton.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      widget.classList.add('chatbot-hidden');
+      widget.setAttribute('aria-hidden', 'true');
+      clearTimeout(inactivityTimer);
+      followUpSent = false;
+    }
   });
 
   function showTypingIndicator() {
@@ -293,7 +408,13 @@
 
     addMessage(message, 'user');
     input.value = '';
-    resetInactivityTimer();  // Reset timer when user sends a message
+    resetInactivityTimer();
+    
+    // Add the message to our history
+    messageHistory.push({
+      role: 'user',
+      content: message
+    });
     
     showTypingIndicator();
 
@@ -304,10 +425,7 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          messages: [{
-            role: 'user',
-            content: message
-          }]
+          messages: messageHistory
         })
       });
 
@@ -319,6 +437,21 @@
       if (response.ok) {
         // The response.content will contain markdown formatting
         addMessage(data.response.content, 'bot');
+        
+        // Add the response to our history
+        messageHistory.push({
+          role: 'assistant',
+          content: data.response.content
+        });
+        
+        // Limit history to prevent excessive token usage
+        if (messageHistory.length > 10) {
+          // Keep first message (context) and last 9 messages
+          messageHistory = [
+            messageHistory[0],
+            ...messageHistory.slice(messageHistory.length - 9)
+          ];
+        }
       } else {
         addMessage('Sorry, I encountered an error. Please try again.', 'bot');
       }
@@ -329,9 +462,75 @@
     }
   }
 
+  // Add these functions to handle chat history persistence
+  function saveMessageToHistory(content, sender) {
+    const chatHistory = JSON.parse(localStorage.getItem('sgn-chat-history') || '[]');
+    chatHistory.push({
+      content, 
+      sender,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Limit history to last 50 messages
+    if (chatHistory.length > 50) {
+      chatHistory.shift();
+    }
+    
+    localStorage.setItem('sgn-chat-history', JSON.stringify(chatHistory));
+  }
+
+  function loadChatHistory() {
+    const chatHistory = JSON.parse(localStorage.getItem('sgn-chat-history') || '[]');
+    if (chatHistory.length > 0) {
+      // Add a "Continue previous conversation" message
+      addMessage('Would you like to continue your previous conversation?', 'bot');
+      // Add a "clear history" option
+      addClearHistoryButton();
+    } else {
+      // Initial greeting
+      addMessage('Hello! How can we help you today?', 'bot');
+    }
+  }
+
+  function addClearHistoryButton() {
+    const clearButton = document.createElement('button');
+    clearButton.textContent = 'Start New Conversation';
+    clearButton.classList.add('clear-history-button');
+    clearButton.addEventListener('click', () => {
+      localStorage.removeItem('sgn-chat-history');
+      while (messages.firstChild) {
+        messages.removeChild(messages.firstChild);
+      }
+      addMessage('Hello! How can we help you today?', 'bot');
+    });
+    messages.appendChild(clearButton);
+  }
+
+  // Update the addMessage function to save messages
   function addMessage(content, sender) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', `${sender}-message`);
+    const messageContainer = document.createElement('div');
+    messageContainer.classList.add('message-container', `${sender}-container`);
+    
+    // Create avatar element
+    const avatarDiv = document.createElement('div');
+    avatarDiv.classList.add('message-avatar');
+    
+    // Set different avatars for bot and user
+    if (sender === 'bot') {
+      avatarDiv.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="#01bf53"><path d="M12 2.25c-5.376 0-9.75 4.374-9.75 9.75s4.374 9.75 9.75 9.75 9.75-4.374 9.75-9.75S17.376 2.25 12 2.25zm2.259 5.854a2.25 2.25 0 114.091 1.88l-1.824 3.969a.75.75 0 01-1.362-.628l1.824-3.969a.752.752 0 00-.98-.98l-3.969 1.824a.75.75 0 01-.628-1.362l3.969-1.824a2.25 2.25 0 01-.121.09zM9.776 15.896a2.25 2.25 0 11-4.09-1.88l1.824-3.969a.75.75 0 011.362.628L7.05 14.643a.752.752 0 00.979.98l3.97-1.824a.75.75 0 01.628 1.362l-3.97 1.824a2.22 2.22 0 01.12-.09z"/></svg>'; // Golf ball icon
+    } else {
+      avatarDiv.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="#888"><path d="M12 2.25c-5.376 0-9.75 4.374-9.75 9.75s4.374 9.75 9.75 9.75 9.75-4.374 9.75-9.75S17.376 2.25 12 2.25zm-4.5 9.75a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/></svg>'; // User icon
+    }
+    
+    // Create message bubble
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.classList.add('message', `${sender}-message`);
+    
+    // Add timestamp div
+    const timestamp = document.createElement('div');
+    timestamp.classList.add('message-timestamp');
+    const now = new Date();
+    timestamp.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     // Clean the content before processing markdown
     const cleanedContent = cleanResponse(content);
@@ -343,16 +542,29 @@
         sanitize: true
       });
       
-      messageDiv.innerHTML = marked.parse(cleanedContent);
+      bubbleDiv.innerHTML = marked.parse(cleanedContent);
     } else {
-      messageDiv.textContent = cleanedContent;
+      bubbleDiv.textContent = cleanedContent;
     }
     
-    messages.appendChild(messageDiv);
+    // Append timestamp to bubble
+    bubbleDiv.appendChild(timestamp);
+    
+    // Append everything
+    messageContainer.appendChild(avatarDiv);
+    messageContainer.appendChild(bubbleDiv);
+    messages.appendChild(messageContainer);
     messages.scrollTop = messages.scrollHeight;
 
     if (messages.children.length > 1) {
       resetInactivityTimer();
+    }
+
+    // Save to history
+    saveMessageToHistory(content, sender);
+
+    if (sender === 'bot') {
+      showNotification();
     }
   }
 
@@ -362,11 +574,33 @@
     if (e.key === 'Enter') sendMessage();
   });
 
-  // Initial greeting
-  addMessage('Hello! How can we help you today?', 'bot');
+  // Update initialization to load history
+  loadChatHistory();
 
   // Add marked.js for markdown parsing (add this in your HTML)
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
   document.head.appendChild(script);
+
+  // Add notification HTML to toggle element
+  const notificationBubble = document.createElement('div');
+  notificationBubble.classList.add('notification-bubble');
+  notificationBubble.textContent = '1';
+  toggle.appendChild(notificationBubble);
+
+  // Show notification when bot message comes in while chat is hidden
+  function showNotification() {
+    if (widget.classList.contains('chatbot-hidden')) {
+      notificationBubble.classList.add('show');
+    }
+  }
+
+  // Clear notification when chat is opened
+  toggle.addEventListener('click', () => {
+    widget.classList.remove('chatbot-hidden');
+    notificationBubble.classList.remove('show');
+    if (messages.children.length > 1) {
+      resetInactivityTimer();
+    }
+  });
 })(); 
