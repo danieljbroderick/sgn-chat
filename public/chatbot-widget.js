@@ -143,17 +143,24 @@
       background: black;
       border-radius: 3px;
     }
+    .typing-indicator-container {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      gap: 8px;
+      animation: fadeIn 0.3s ease-out;
+    }
     .typing-indicator {
       background-color: #f0f0f0;
       border-radius: 15px;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      width: fit-content;
-      display: none;
-      position: relative;
-      margin-top: auto;
+      border-top-left-radius: 4px;
+      padding: 12px 16px;
+      width: auto;
+      display: flex;
+      align-items: center;
+      max-width: 75%;
+      height: 20px;
     }
-    
     .typing-indicator span {
       display: inline-block;
       width: 8px;
@@ -163,16 +170,13 @@
       margin-right: 5px;
       animation: typing 1s infinite;
     }
-    
     .typing-indicator span:nth-child(2) {
       animation-delay: 0.2s;
     }
-    
     .typing-indicator span:nth-child(3) {
       animation-delay: 0.4s;
       margin-right: 0;
     }
-    
     @keyframes typing {
       0%, 100% {
         transform: translateY(0);
@@ -319,11 +323,6 @@
         <span class="chatbot-close" role="button" tabindex="0" aria-label="Close chat">×</span>
       </div>
       <div class="chatbot-messages" role="log" aria-live="polite"></div>
-      <div class="typing-indicator" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
       <div class="chatbot-input" role="form">
         <input type="text" placeholder="Type your message..." aria-label="Message input">
         <button aria-label="Send message">Send</button>
@@ -405,14 +404,44 @@
   });
 
   function showTypingIndicator() {
-    const typingIndicator = document.querySelector('.typing-indicator');
-    typingIndicator.style.display = 'block';
+    // First check if we already have a typing indicator container
+    const existingIndicator = document.querySelector('.typing-indicator-container');
+    if (existingIndicator) {
+      existingIndicator.style.display = 'flex';
+      messages.scrollTop = messages.scrollHeight;
+      return;
+    }
+
+    // Create a container for the typing indicator that resembles a message container
+    const typingContainer = document.createElement('div');
+    typingContainer.classList.add('message-container', 'bot-container', 'typing-indicator-container');
+    
+    // Create and add the bot avatar
+    const avatarDiv = document.createElement('div');
+    avatarDiv.classList.add('message-avatar');
+    avatarDiv.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="#01bf53"><path d="M12 2.25c-5.376 0-9.75 4.374-9.75 9.75s4.374 9.75 9.75 9.75 9.75-4.374 9.75-9.75S17.376 2.25 12 2.25zm2.259 5.854a2.25 2.25 0 114.091 1.88l-1.824 3.969a.75.75 0 01-1.362-.628l1.824-3.969a.752.752 0 00-.98-.98l-3.969 1.824a.75.75 0 01-.628-1.362l3.969-1.824a2.25 2.25 0 01-.121.09zM9.776 15.896a2.25 2.25 0 11-4.09-1.88l1.824-3.969a.75.75 0 011.362.628L7.05 14.643a.752.752 0 00.979.98l3.97-1.824a.75.75 0 01.628 1.362l-3.97 1.824a2.22 2.22 0 01.12-.09z"/></svg>';
+    
+    // Create typing indicator bubble
+    const typingBubble = document.createElement('div');
+    typingBubble.classList.add('message', 'bot-message', 'typing-indicator');
+    
+    // Add the animated dots
+    typingBubble.innerHTML = '<span></span><span></span><span></span>';
+    
+    // Assemble the typing indicator
+    typingContainer.appendChild(avatarDiv);
+    typingContainer.appendChild(typingBubble);
+    
+    // Add to the messages container
+    messages.appendChild(typingContainer);
     messages.scrollTop = messages.scrollHeight;
   }
 
   function hideTypingIndicator() {
-    const typingIndicator = document.querySelector('.typing-indicator');
-    typingIndicator.style.display = 'none';
+    const typingContainer = document.querySelector('.typing-indicator-container');
+    if (typingContainer) {
+      typingContainer.remove();
+    }
   }
 
   function cleanResponse(content) {
